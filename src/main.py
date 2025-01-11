@@ -31,7 +31,7 @@ time.sleep(4)
 wrapper_list = driver.find_element(By.ID, "lista_wrapper")
 source_code = wrapper_list.get_attribute("outerHTML")
 print(source_code)
-output_path = os.path.join('data', 'raw_html', 'doctor_who.txt')
+output_path = os.path.join('src', 'data', 'raw_html', 'doctor_who.txt')
 
 # Create the directory if it does not exist
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
