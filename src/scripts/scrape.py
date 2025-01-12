@@ -11,7 +11,6 @@ driver = webdriver.Chrome()
 driver.get(url)
 
 time.sleep(10)
-#if "Esta consulta pode demorar alguns minutos" wait
 
 title = driver.title
 print(title)
@@ -27,10 +26,10 @@ pagination_length_select.select_by_value('30')
 time.sleep(4)
 
 
-# Se for maior que 9 precisa mudar
+# Maior que 9 precisa mudar
 which_list_info = driver.find_element(By.ID, 'lista_info')
 number_of_pages = int(which_list_info.text[-1])
-###
+
 
 counter = 0
 
@@ -44,10 +43,8 @@ while True:
     print(source_code)
     output_path = os.path.join('src', 'data', 'raw_html',  f'servidores_pagina_{counter}.txt')
 
-    # Create the directory if it does not exist
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Write the content to the specified file
     with open(output_path, 'w', encoding='utf-8') as file:
         file.write(source_code)
         
