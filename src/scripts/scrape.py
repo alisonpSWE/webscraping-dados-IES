@@ -10,8 +10,12 @@ def scrape_servidores():
     driver = webdriver.Chrome()
     driver.get(url)
 
-    time.sleep(10)
-
+    time.sleep(2)
+    accept_terms_and_conditions = driver.find_element(By.ID, "accept-minimal-btn")
+    accept_terms_and_conditions.click()
+    
+    time.sleep(2)   
+    
     title = driver.title
     print(title)
     pagination_button = driver.find_element(By.ID, "btnPaginacaoCompleta")
@@ -40,8 +44,8 @@ def scrape_servidores():
 
         wrapper_list = driver.find_element(By.ID, "lista_wrapper")
         source_code = wrapper_list.get_attribute("outerHTML")
-        print(source_code)
-        output_path = os.path.join('src', 'data', 'raw_html',  f'servidores_pagina_{counter}.txt')
+        
+        output_path = os.path.join('src', 'data', 'raw_html', 'servidores_lista',  f'servidores_pagina_{counter}.txt')
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
@@ -54,13 +58,29 @@ def scrape_servidores():
         
         counter += 1
 
-
-
     driver.quit()
+    
+    
+def scrape_remuneracao(ids):
+    
+    for id in ids:
+        
+        url = f'https://portaldatransparencia.gov.br/servidores/{id}'
+        driver = webdriver.Chrome()
+        driver.get(url)
+        
+        tabela_dados_remuneracao = driver.find_element(By.ID, "tab-remuneracoesServidor-1-servidor-civil")
 
+        source_code = tabela_dados_remuneracao.get_attribute("outerHTML")
 
-
-
-
-
+        name_element = driver.find_element(By.CSS_SELECTOR, "div.col-xs-12.col-sm-4 span")
+        name = name_element.text
+        
+        output_path = os.path.join('src', 'data', 'raw_html', 'dados_servidores',  f'{name}.txt')
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        
+        with open(output_path, 'w', encoding='utf-8') as file:
+            file.write(source_code)
+        driver.quit()    
 
