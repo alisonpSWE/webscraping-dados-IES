@@ -10,14 +10,14 @@ url= "https://portaldatransparencia.gov.br/servidores/consulta?paginacaoSimples=
 driver = webdriver.Chrome()
 driver.get(url)
 
-time.sleep(3)
+time.sleep(10)
 #if "Esta consulta pode demorar alguns minutos" wait
-driver.implicitly_wait(2)
+
 title = driver.title
 print(title)
 pagination_button = driver.find_element(By.ID, "btnPaginacaoCompleta")
 pagination_button.click()
-time.sleep(4)
+time.sleep(2)
 
 #botar pra lista tamanho 30
 select_element = driver.find_element(By.NAME, 'lista_length')
@@ -27,15 +27,43 @@ pagination_length_select.select_by_value('30')
 time.sleep(4)
 
 
+# Se for maior que 9 precisa mudar
+which_list_info = driver.find_element(By.ID, 'lista_info')
+number_of_pages = int(which_list_info.text[-1])
+###
 
-wrapper_list = driver.find_element(By.ID, "lista_wrapper")
-source_code = wrapper_list.get_attribute("outerHTML")
-print(source_code)
-output_path = os.path.join('src', 'data', 'raw_html', 'doctor_who.txt')
+counter = 0
 
-# Create the directory if it does not exist
-os.makedirs(os.path.dirname(output_path), exist_ok=True)
+while True:
+    time.sleep(4)
+    if counter == number_of_pages: break
+        
 
-# Write the content to the specified file
-with open(output_path, 'w', encoding='utf-8') as file:
-    file.write(source_code)
+    wrapper_list = driver.find_element(By.ID, "lista_wrapper")
+    source_code = wrapper_list.get_attribute("outerHTML")
+    print(source_code)
+    output_path = os.path.join('src', 'data', 'raw_html',  f'servidores_pagina_{counter}.txt')
+
+    # Create the directory if it does not exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    # Write the content to the specified file
+    with open(output_path, 'w', encoding='utf-8') as file:
+        file.write(source_code)
+        
+
+    pagination_next_button = driver.find_element(By.ID, 'lista_next')
+    pagination_next_button.click()
+    
+    counter += 1
+
+
+
+driver.quit()
+
+
+
+
+
+
+
