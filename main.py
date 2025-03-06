@@ -21,10 +21,9 @@ def main():
     id_servidores = [server_id for i in range(3) for server_id in get_servidores_id(i)]
 
     remuneracao_output_dir = "src/data/dados_servidores/"
-    print("Starting remuneration scraping...")
+
     remuneracao_scraper.scrape_remuneracao(id_servidores, remuneracao_output_dir)
 
-    print("Generating CSV output...")
     output_csv_with_data()
 
 
