@@ -12,10 +12,9 @@
 
 ## Funcionalidades
 
-- **Extração de Dados**: Coleta informações através do Portal da Transparência.
-- **Coleta de Remuneração**: Realiza a raspagem dos dados de remuneração.
-- **Geração de CSV**: Organiza e exporta os dados coletados para um arquivo CSV.
-- **Integração com Banco de Dados**: Possui funções preparadas para inserção dos dados extraídos em um banco de dados.
+- **Coleta de Remuneração**: Realiza scraping dos dados de remuneração.
+- **Processamento de Dados**: Utiliza a biblioteca **Pandas** para processar e manipular os dados extraídos.
+- **Integração com Banco de Dados**: Funções preparadas para inserção dos dados extraídos em um bd.
 
 
 ## Pré-requisitos e Execução
