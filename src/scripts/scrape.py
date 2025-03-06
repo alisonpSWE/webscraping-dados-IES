@@ -1,86 +1,85 @@
+##scrape.py
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 import time
 import os
+from src.scripts.utils import get_number_of_pages
 
-def scrape_servidores():
-    url= "https://portaldatransparencia.gov.br/servidores/consulta?paginacaoSimples=true&tamanhoPagina=&offset=&direcaoOrdenacao=asc&orgaosServidorLotacao=UR26233000000947&colunasSelecionadas=detalhar%2Ctipo%2Csituacao%2Ccpf%2Cnome%2CorgaoExercicio%2CorgaoServidorExercicio%2Cmatricula%2CtipoVinculo%2Cfuncao&t=BDmuatkttlLejngvC07M&ordenarPor=nome&direcao=asc"
+class BaseScraper:
+    def __init__(self):
+        self.driver = webdriver.Chrome()
+        self.wait = WebDriverWait(self.driver, 10)
 
-    driver = webdriver.Chrome()
-    driver.get(url)
+    def close(self):
+        self.driver.quit()
 
-    time.sleep(2)
-    accept_terms_and_conditions = driver.find_element(By.ID, "accept-minimal-btn")
-    accept_terms_and_conditions.click()
-    
-    time.sleep(2)   
-    
-    title = driver.title
-    print(title)
-    pagination_button = driver.find_element(By.ID, "btnPaginacaoCompleta")
-    pagination_button.click()
-    time.sleep(2)
-
-    #botar pra lista tamanho 30
-    select_element = driver.find_element(By.NAME, 'lista_length')
-    pagination_length_select = Select(select_element)
-    pagination_length_select.select_by_index(2)
-    pagination_length_select.select_by_value('30')
-    time.sleep(4)
-
-
-    # Maior que 9 precisa mudar
-    which_list_info = driver.find_element(By.ID, 'lista_info')
-    number_of_pages = int(which_list_info.text[-1])
-
-
-    counter = 0
-
-    while True:
+class ServidorScraper(BaseScraper):
+    def scrape_servidores(self, url, output_dir):
         time.sleep(4)
-        if counter == number_of_pages: break
-            
+        self.driver.get(url)
+        self._accept_terms()
+        self._set_pagination_length()
 
-        wrapper_list = driver.find_element(By.ID, "lista_wrapper")
+        num_pages = get_number_of_pages(self.driver)
+        for page in range(num_pages - 1):
+            self._scrape_page(page, output_dir)
+            self._go_to_next_page()
+
+        self.close()
+
+    def _accept_terms(self):
+        accept_btn = self.wait.until(EC.element_to_be_clickable((By.ID, "accept-minimal-btn")))
+        accept_btn.click()
+
+    def _set_pagination_length(self):
+        pagination_button = self.wait.until(EC.element_to_be_clickable((By.ID, "btnPaginacaoCompleta")))
+        pagination_button.click()
+        select_element = self.driver.find_element(By.NAME, 'lista_length')
+        select = Select(select_element)
+        select.select_by_value('30')
+
+    def _scrape_page(self, page, output_dir):
+        time.sleep(4)  # Considera remover ou substituir por uma espera mais robusta
+        wrapper_list = self.driver.find_element(By.ID, "lista_wrapper")
         source_code = wrapper_list.get_attribute("outerHTML")
-        
-        output_path = os.path.join('src', 'data', 'raw_html', 'servidores_lista',  f'servidores_pagina_{counter}.txt')
 
+        output_path = os.path.join(output_dir, f'servidores_pagina_{page}.txt')
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         with open(output_path, 'w', encoding='utf-8') as file:
             file.write(source_code)
-            
 
-        pagination_next_button = driver.find_element(By.ID, 'lista_next')
-        pagination_next_button.click()
-        
-        counter += 1
+    def _go_to_next_page(self):
+        next_button = self.wait.until(EC.element_to_be_clickable((By.ID, 'lista_next')))
+        next_button.click()
 
-    driver.quit()
-    
-    
-def scrape_remuneracao(ids):
-    
-    for id in ids:
-        
-        url = f'https://portaldatransparencia.gov.br/servidores/{id}'
-        driver = webdriver.Chrome()
-        driver.get(url)
-        
-        tabela_dados_remuneracao = driver.find_element(By.ID, "tab-remuneracoesServidor-1-servidor-civil")
+class RemuneracaoScraper(BaseScraper):
+    def scrape_remuneracao(self, ids, output_dir):
+        for id in ids:
+            url = f'https://portaldatransparencia.gov.br/servidores/{id}'
+            self.driver.get(url)
 
-        source_code = tabela_dados_remuneracao.get_attribute("outerHTML")
+            vinculos_html = self._get_element_html("vinculos-vigentes")
+            remuneracao_html = self._get_element_html("tab-remuneracoesServidor-1-servidor-civil")
+            name = self._get_name()
 
-        name_element = driver.find_element(By.CSS_SELECTOR, "div.col-xs-12.col-sm-4 span")
-        name = name_element.text
-        
-        output_path = os.path.join('src', 'data', 'raw_html', 'dados_servidores',  f'{name}.txt')
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        
-        
-        with open(output_path, 'w', encoding='utf-8') as file:
-            file.write(source_code)
-        driver.quit()    
+            output_path = os.path.join(output_dir, f'{name}.txt')
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
+            with open(output_path, 'w', encoding='utf-8') as file:
+                file.write(vinculos_html + remuneracao_html)
+
+            self.close()
+            self.driver = webdriver.Chrome()  # Reabrir o driver para o próximo ID
+
+    def _get_element_html(self, element_id):
+        element = self.wait.until(EC.presence_of_element_located((By.ID, element_id)))
+        return element.get_attribute("outerHTML")
+
+    def _get_name(self):
+        name_element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.col-xs-12.col-sm-4 span")))
+        return name_element.text

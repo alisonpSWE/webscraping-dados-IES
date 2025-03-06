@@ -1,6 +1,8 @@
 # TEST AND DEVELOPMENT
 src/data
 db_operations.py
+src/output
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
