@@ -10,6 +10,8 @@
   Webscraping desenvolvido com Selenium e Pandas para extrair informações a partir do Portal da Transparência. 
   ```
 
+![Exemplo de interface Streamlit](streamlit_example.png)
+
 ## Funcionalidades
 
 - **Coleta de Remuneração**: Utiliza a biblioteca **Selenium** no scraping dos dados de remuneração.
